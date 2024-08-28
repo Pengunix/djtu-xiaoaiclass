@@ -20,18 +20,23 @@ function getWeeks(weeksHtml) {
 
 function getClass(classHtml, day, section) {
   var classA = [];
-  var classHtml = classHtml.replace(new RegExp("<wbr>", "g"), ""); // 去除无用字符
+  var classHtml = classHtml.replace(/<wbr>/g, ""); // 去除无用字符
   var classs = classHtml.split('讲课学时').filter(item => item != ''); // 分割课程并去空
   if (classs.length >= 1) { //防止空课表
     for (var i = 0; i < classs.length; i++) { //遍历所有课程
       if (classs[i].indexOf("<br>") != -1) { //判断课程信息是否可以正常分割
         var classObj = {};
+        // 0:课程名,1:教室,2:教师名,3:上课周次
         var classesObj = classs[i].split("<br>").filter(item => item != ''); //对课程进行分割
-
         if (classesObj.length == 4) {
-          classObj.name = classesObj[0];
+          var course_name = classesObj[0].match(/\<\<(\S+)\>\>/);
+          if (!course_name) {
+            course_name = classesObj[0].match(/\&lt\;\&lt\;(\S+)\&gt\;\&gt\;/);
+          }
+          classObj.name = course_name[1];
           classObj.position = classesObj[1];
           classObj.teacher = classesObj[2];
+
           classObj.weeks = [].concat(getWeeks(classesObj[3]));
           classObj.day = day;
           classObj.sections = [];
@@ -39,7 +44,11 @@ function getClass(classHtml, day, section) {
           classA.push(classObj);
         }
         else {
-          classObj.name = classesObj[0];
+          var course_name = classesObj[0].match(/\<\<(\S+)\>\>/);
+          if (!course_name) {
+            course_name = classesObj[0].match(/\&lt\;\&lt\;(\S+)\&gt\;\&gt\;/);
+          }
+          classObj.name = course_name[1];
           classObj.position = "无具体上课地点";
           classObj.teacher = classesObj[1];
           classObj.weeks = [].concat(getWeeks(classesObj[2]));
